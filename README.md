@@ -1,30 +1,26 @@
-# Starter folder
+# MyAnimeList Analysis
 
 ## Overview
 
-This repo provides students with a foundation for their own projects associated with *Telling Stories with Data*. You do not need every aspect for every paper and you should delete aspects that you do not need.
-
+This repo analyzes the top 10000 rated anime on MyAnimeList.
 
 ## File Structure
 
 The repo is structured as:
 
--   `data/raw_data` contains the raw data as obtained from X.
+-   `data/raw_data` contains the raw data as obtained from the MyAnimeList API.
 -   `data/analysis_data` contains the cleaned dataset that was constructed.
--   `model` contains fitted models. 
--   `other` contains relevant literature, details about LLM chat interactions, and sketches.
--   `paper` contains the files used to generate the paper, including the Quarto document and reference bibliography file, as well as the PDF of the paper. 
+-   `model` contains fitted models.
+-   `other` contains sketches of a dataset and graph prior to obtaining the actual dataset to help plan the paper.
+-   `paper` contains the files used to generate the paper, including the Quarto document and reference bibliography file, as well as the PDF of the paper.
 -   `scripts` contains the R scripts used to simulate, download and clean data.
 
+## Downloading the Data
+
+The dataset for this paper was gathered on April 10, 2024. A `.env` file is required in the root folder with your own OAuth2.0 token. You should register a client ID here <https://myanimelist.net/apiconfig> and I recommend using Postman to generate the token using their callback URI <https://www.getpostman.com/oauth2/callback>.
 
 ## Statement on LLM usage
 
-Aspects of the code were written with the help of the auto-complete tool, Codriver. The abstract and introduction were written with the help of ChatHorse and the entire chat history is available in inputs/llms/usage.txt.
+No LLMs were used for any aspect of this work.
 
-## Some checks
-
-- [ ] Change the rproj file name so that it's not starter_folder.Rproj
-- [ ] Change the README title so that it's not Starter folder
-- [ ] Remove files that you're not using
-- [ ] Update comments in R scripts
-- [ ] Remove this checklist
+## 
