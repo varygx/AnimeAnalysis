@@ -26,9 +26,30 @@ data <- tibble(
   title = 1:num_obs,
   date = random_dates,
   score = rnorm(num_obs, mean = 5),
-  rank = rank(-score, ties.method = "min"),
+  rank = rank(-score),
   genre = random_genres,
-  popularity = round(runif(num_obs, 100, 1000000))
+  members = round(runif(num_obs, 100, 1000000)),
+  popularity = rank(-members)
 )
+
+score_distribution_plot <- ggplot(data, aes(x = score)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black") +
+  labs(title = "Distribution of Scores",
+       x = "Score",
+       y = "Frequency") +
+  theme_minimal()
+
+score_distribution_plot
+
+rank_popularity_plot <- ggplot(data, aes(x = rank, y = popularity)) +
+  geom_point(size = 3, color = "darkorange") +
+  scale_x_reverse() +
+  scale_y_reverse() +
+  labs(title = "Rank vs. Popularity",
+       x = "Rank",
+       y = "Popularity") +
+  theme_minimal()
+
+rank_popularity_plot
 
 
