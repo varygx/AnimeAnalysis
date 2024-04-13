@@ -5,7 +5,8 @@
 # Date: 12 April 2024
 # Contact: allen.uy@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: 01-download_data is run and file is saved in appropriate location
+# Pre-requisites: 01-download_data is run and raw data is saved in 
+# appropriate location
 
 #### Workspace setup ####
 library("tidyverse")
@@ -22,14 +23,22 @@ cleaned_data <- raw_data |> clean_names()
 all_genres <- unique(unlist(cleaned_data$genres))
 
 for (genre in all_genres) {
-  cleaned_data[[genre]] <- 0
+  cleaned_data[[genre]] <- as.integer(0)
 }
 
 for (i in seq_len(nrow(cleaned_data))) {
   for (genre in cleaned_data$genres[[i]]) {
-    cleaned_data[i, genre] <- 1
+    cleaned_data[i, genre] <- as.integer(1)
   }
 }
+
+cleaned_data$id <- as.integer(cleaned_data$id)
+cleaned_data$rank <- as.integer(cleaned_data$rank)
+cleaned_data$popularity <- as.integer(cleaned_data$popularity)
+cleaned_data$start_date <- as.Date(cleaned_data$start_date)
+cleaned_data$num_scoring_users <- as.integer(cleaned_data$num_scoring_users)
+cleaned_data$num_list_users <- as.integer(cleaned_data$num_list_users)
+
 
 cleaned_data <- cleaned_data |> select(-genres) |>
   clean_names()
