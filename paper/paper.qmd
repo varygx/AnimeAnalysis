@@ -1,6 +1,6 @@
 ---
-title: "My title"
-subtitle: "My subtitle if needed"
+title: "My title: still thinking"
+subtitle: "Definitely want a subtitle"
 author: Allen Uy
 thanks: "Code and data are available at: https://github.com/varygx/AnimeAnalysis"
 date: today
@@ -25,26 +25,30 @@ library("kableExtra")
 clean_anime <- read_parquet(here::here("data/analysis_data/clean_anime.parquet"))
 ```
 
-# Introduction
+# Introduction (longer)
 
 Anime refers to animation originating from Japan. In 2021, half of Netflix's 222 million subscribers watched some anime on the platform and viewership saw an increase of 20% in the total hours over the previous year [@netflixAnime].
 
 MyAnimeList, herein referred to as MAL, is one of the largest and most popular anime database and communities online. Users are able to keep track of anime they have watched or plan to, as well as rate and find similar anime.
 
+The estimand of interest is...
+
 We conduct an analysis on the ratings of anime on MAL. Specifically we contrast
+
+The subsequent sections follow a structured format. @sec-data outlines the source and variables of interest for our analysis. @sec-model details the construction and methodology of the statistical models used. @sec-results presents the key findings of our analysis, while @sec-discussion critically reviews the content, addresses the implications of the results, acknowledges model limitations, and suggests potential research directions.
 
 # Data {#sec-data}
 
-The data in this paper is sourced from the MAL API [@MALAPI] and was gathered on April 10, 2024. The rankings of anime in the database are updated twice a day so the data gathered can be assumed to be up to date. Data analysis is performed in R [@citeR] with help from the following libraries: `tidyverse` [@citeTidyverse], `arrow` [@citeArrow], `rstanarm` [@citeRstanarm], `modelsummary` [@citeModelsummary], `testthat` [@citeTestthat], `here` [@citeHere], `knitr` [@citeKnitr], `kableExtra` [@citeKableExtra], `dotenv` [@citeDotenv], and `httr2` [@citeHttr2].
+The data in this paper is sourced from the MAL API [@MALAPI] and was gathered on April 12, 2024. The rankings of anime in the database are updated twice a day so the data gathered can be assumed to be up to date. Data analysis is performed in R [@citeR] with help from the following libraries: `tidyverse` [@citeTidyverse], `arrow` [@citeArrow], `rstanarm` [@citeRstanarm], `modelsummary` [@citeModelsummary], `testthat` [@citeTestthat], `here` [@citeHere], `knitr` [@citeKnitr], `kableExtra` [@citeKableExtra], `dotenv` [@citeDotenv], and `httr2` [@citeHttr2].
 
 ## Measurement
 
-In order to rate anime and add them to a list users must register an account on the MAL website. Each account can add an anime to their list once by choosing 1 of 5 statuses: watching, completed, on-hold, dropped, and plan to watch. It is also possible to remove an anime from the list if it was added by mistake. Every user that has an anime on their list is counted as a member of that anime, which is how the popularity rank is calculated. The user can also give a score to an anime, regardless of status, which is an integer from 1 to 10. The score of an anime on MAL is a weighted score calculated as:
+In order to rate anime and add them to a list users must register an account on the MAL website. Each account can add an anime to their list once by choosing 1 of 5 statuses: watching, completed, on-hold, dropped, and plan to watch. It is also possible to remove an anime from the list if it was added by mistake. Every user that has an anime on their list is counted as a member of that anime, which is how the popularity rank is calculated. The user can also give a score to an anime, regardless of status, which is an integer from 1 to 10. The score of an anime on MAL is a weighted score calculated via the following:
 
 ```{=tex}
-\begin{equation}
+\begin{equation*}
 \text{Weighted Score} = \left( \frac{v}{v + m} \right) \cdot S + \left( \frac{m}{v + m} \right) \cdot C
-\end{equation}
+\end{equation*}
 
 where:
 \begin{align*}
@@ -55,23 +59,30 @@ where:
     & C \text{ is the mean score across the entire anime/manga database.}
 \end{align*}
 ```
-This equation requires a minimum number of scores to ensures a fair sample size and takes into account popularity and normalizes the score compared to the mean score in the database. In addition, MAL verifies whether the user has viewed 1/5 of the series upon completion and excludes scores by illegitimate accounts that try to sway votes. How this is done is not detailed. Due to the personal nature of these lists we assume that each user and list is associated with exactly one individual.
+This equation requires a minimum number of scores to ensure a fair sample size, takes into account popularity, and normalizes the score compared to the mean score in the database. Note that for a sufficiently large number of scoring users the weighted score will be close to the actual mean score. In addition, MAL verifies whether the user has viewed 1/5 of the series upon completion and excludes scores by illegitimate accounts that try to sway votes. How this is done is not detailed. Due to the personal nature of these lists we assume that each user and list is associated with exactly one individual.
 
 ## Top 10000 Ranked Anime
+
+The MAL API is capable of fetching up to 500 anime based on ranking at a time for a given offset. @tbl-anime_dataset shows a small subset of the data gathered. Relatively little cleaning was required as the API allows one to specify what fields should be returned. The genre was returned as a list of strings which was turned into a multi-hot encoding for data processing. MAL has 74 listed genres and themes, so only 2 genre columns are displayed here for readability.
+
+(maybe move this to discussion) Three fields of interest were unable to be retrieved without an API call for a specific id, namely related anime, recommendations, and statistics regarding the exact numbers of member status. When attempting to get this data, rate limiting was encountered at roughly 250 calls per 10 minutes, with no clear way to raise the API call limit. Due to this the relationships between anime could not investigated thoroughly.
 
 ```{r, echo=FALSE}
 #| label: tbl-anime_dataset
 #| tbl-cap: Sample of Anime
-head(clean_anime, 5) %>% 
+
+bind_rows(head(clean_anime, 3), tail(clean_anime, 3)) |>
+  select(id, title, rank, start_date, studio, mean, popularity, num_list_users,
+         num_scoring_users, adventure, drama) |>
   kable(
     booktabs = TRUE,
     linesep = ""
-  ) %>% kable_styling(latex_options = "scale_down")
+  ) |> kable_styling(latex_options = "scale_down")
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #| label: fig-score_distribution
-#| fig-cap: Distribution of scores of top 10000 anime
+#| fig-cap: Distribution of Scores of Top 10000 Anime
 
 mean_score <- mean(clean_anime$mean)
 
@@ -82,19 +93,101 @@ clean_anime %>%
   geom_vline(aes(xintercept=mean_score), linetype="dashed", size=1) +
   annotate("text", x = mean_score + 0.1, y = 550, label = paste("Mean Score:", round(mean_score, 2)), 
            hjust = 0, vjust = -1) +
-  labs(x = "Score", y = "count", title = "Distribution of scores of top 10000 anime")
+  labs(x = "Score", y = "count")
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #| label: fig-rank_vs_popularity
-#| fig-cap: Rank vs Popularity
+#| fig-cap: Rank vs Popularity for Top 10000 Anime
+
+correlation <- cor(clean_anime$rank, clean_anime$popularity)
 
 clean_anime |>  ggplot(aes(x = rank, y = popularity)) +
-  geom_point(color = "blue", size=0.5) +
-  labs(x = "Rank (Low to High)", y = "Popularity (Low to High)", title = "Rank vs Popularity") +
+  geom_point(color = "blue", size=0.5, alpha=0.3) +
+  labs(x = "Rank", y = "Popularity") +
   scale_x_reverse() +
   scale_y_reverse() +
-  theme_minimal()
+  theme_minimal() +
+  geom_vline(xintercept = 5000, color = "black", size=1) +
+  geom_hline(yintercept = 10000, color = "black", size=1) +
+  annotate("text", x = 2500, y = 15000, label = "Hidden Gem", color = "black", size=5, fontface = "bold") +
+  annotate("text", x = 7500, y = 15000, label = "Niche", color = "black", size=5, fontface = "bold") +
+  annotate("text", x = 2500, y = 5000, label = "Top Tier", color = "black", size=5, fontface = "bold") +
+  annotate("text", x = 7500, y = 5000, label = "Classic", color = "black", size=5, fontface = "bold") +
+  geom_smooth(method = "lm", color = "red", se = FALSE)
+  # annotate("text", x = 0, y = -500, label = paste("R:", round(correlation, 2)), 
+  #          hjust = 1, vjust = 0, size = 4, color = "black", fontface = "bold")
+```
+
+From the right skewed distribution of @fig-score_distribution, we observe that it is difficult for an anime to become top rated. This makes sense in the context of any subject that is reviewed as it requires a large group of people to consistently find greatness with no glaring flaws. It is also sensible that the mean score of the top 10000 anime is closer to 7 than to 5. Scores are inherently a subjective opinion and may take into account enjoyability, as well as how 'good' the piece of work is. Many people could enjoy a bad show even despite having many flaws. This matches the description MAL gives to each score number, where 1 is appalling, 5 is average, 7 is good, and 10 is a masterpiece. Seven is often seen as the borderline of acceptable in many contexts (objective source here maybe?).
+
+If scoring is subjective how much of a relationship is there between rating and popularity? From @fig-rank_vs_popularity we see there is a moderately strong positive linear correlation between rank and popularity. This is also a sensible conclusion as a highly rated anime is more likely to attract new viewers.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#| label: fig-date_vs_popularity
+#| fig-cap: Relationship Between Date and Popularity
+
+ggplot(clean_anime, aes(x = start_date, y = popularity)) +
+  geom_point(color = "blue", size = 0.5, alpha=0.3) +
+  labs(x = "Start Date", y = "Popularity") +
+  theme_minimal() +
+  scale_y_reverse() +
+  geom_smooth(method = "lm", color = "red", se = FALSE)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#| label: fig-date_vs_popularity_modern
+#| fig-cap: Relationship Between Date and Popularity in Modern Anime
+
+modern_anime <- clean_anime |>
+  filter(start_date >= as.Date("2000-01-01"))
+
+ggplot(modern_anime, aes(x = start_date, y = popularity)) +
+  geom_point(color = "blue", size = 0.5, alpha=0.3) +
+  labs(x = "Start Date", y = "Popularity") +
+  theme_minimal() +
+  scale_y_reverse() +
+  geom_smooth(method = "lm", color = "red", se = FALSE)
+```
+
+It may seem like the date an anime airs can be a factor for popularity as older anime could have longer exposure over time or newer anime has more coverage but this does not seem to be the case. @fig-date_vs_popularity shows people are less likely to watch very old anime and @fig-date_vs_popularity_modern suggests date is irrelevant to popularity.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#| label: fig-scoring_fraction
+#| fig-cap: Distribution of Scoring Fraction of Top 10000 Anime
+
+mean_fraction <- mean(clean_anime$num_scoring_users / clean_anime$num_list_users)
+
+
+clean_anime |> ggplot(aes(x=num_scoring_users / num_list_users)) +
+  geom_histogram(binwidth = 0.01, color="darkblue", fill="lightblue") +
+  labs(x = "Fraction of Scoring Users to List Users", y = "Frequency") +
+  annotate("text", x = mean_fraction + 0.1, y = 370, label = paste("Mean Fraction:", round(mean_fraction, 3))) +
+  theme_minimal() +
+  geom_vline(aes(xintercept=mean_fraction), linetype="dashed", size=1)
+```
+
+On average, 39% of users end up rating an anime on their list according to @fig-scoring_fraction. There is a strong positive correlation between scoring fraction and popularity, which is sensible as fans of an anime or any media in general are likely express their opinion on that particular media. Surprisingly there is a positive correlation between scoring fraction and rank. One might expect a normal distribution as people are more likely to voice their opinion on a particularly good or bad piece of work but not so much for average ones. Instead we see a linear relationship scoring fraction and rank.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#| label: fig-fraction_relationships
+#| fig-cap: "Correlation to Scoring Fraction"
+#| fig-subcap: ["Popularity plot", "Rank plot"]
+#| layout-ncol: 2
+
+clean_anime |> ggplot(aes(x = num_scoring_users / num_list_users, y = popularity)) +
+  geom_point(color = "blue", size = 0.5, alpha=0.3) +
+  labs(x = "Scoring Fraction", y = "Popularity") +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  theme_minimal() +
+  scale_y_reverse()
+
+clean_anime |> ggplot(aes(x = num_scoring_users / num_list_users, y = rank)) +
+  geom_point(color = "blue", size = 0.5, alpha=0.3) +
+  labs(x = "Scoring Fraction", y = "Rank") +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  theme_minimal() +
+  scale_y_reverse()
 ```
 
 # Model
@@ -137,8 +230,6 @@ Our results are summarized in @tbl-modelresults.
 
 library(rstanarm)
 
-first_model <-
-  readRDS(file = here::here("models/first_model.rds"))
 ```
 
 ```{r}
@@ -148,13 +239,6 @@ first_model <-
 #| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
 #| warning: false
 
-modelsummary::modelsummary(
-  list(
-    "First model" = first_model
-  ),
-  statistic = "mad",
-  fmt = 2
-)
 ```
 
 # Discussion
@@ -197,15 +281,15 @@ In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. Th
 #| fig-cap: "Examining how the model fits, and is affected by, the data"
 #| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
 
-pp_check(first_model) +
-  theme_classic() +
-  theme(legend.position = "bottom")
-
-posterior_vs_prior(first_model) +
-  theme_minimal() +
-  scale_color_brewer(palette = "Set1") +
-  theme(legend.position = "bottom") +
-  coord_flip()
+# pp_check(first_model) +
+#   theme_classic() +
+#   theme(legend.position = "bottom")
+# 
+# posterior_vs_prior(first_model) +
+#   theme_minimal() +
+#   scale_color_brewer(palette = "Set1") +
+#   theme(legend.position = "bottom") +
+#   coord_flip()
 ```
 
 ## Diagnostics
@@ -224,9 +308,9 @@ posterior_vs_prior(first_model) +
 #| fig-subcap: ["Trace plot", "Rhat plot"]
 #| layout-ncol: 2
 
-plot(first_model, "trace")
-
-plot(first_model, "rhat")
+# plot(first_model, "trace")
+# 
+# plot(first_model, "rhat")
 ```
 
 \newpage
