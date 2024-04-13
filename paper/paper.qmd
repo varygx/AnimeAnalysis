@@ -16,7 +16,13 @@ bibliography: references.bib
 #| warning: false
 #| message: false
 
-library(tidyverse)
+library("tidyverse")
+library("arrow")
+library("here")
+library("knitr")
+library("kableExtra")
+
+clean_anime <- read_parquet(here::here("data/analysis_data/clean_anime.parquet"))
 ```
 
 # Introduction
@@ -50,6 +56,46 @@ where:
 \end{align*}
 ```
 This equation requires a minimum number of scores to ensures a fair sample size and takes into account popularity and normalizes the score compared to the mean score in the database. In addition, MAL verifies whether the user has viewed 1/5 of the series upon completion and excludes scores by illegitimate accounts that try to sway votes. How this is done is not detailed. Due to the personal nature of these lists we assume that each user and list is associated with exactly one individual.
+
+## Top 10000 Ranked Anime
+
+```{r, echo=FALSE}
+#| label: tbl-anime_dataset
+#| tbl-cap: Sample of Anime
+head(clean_anime, 5) %>% 
+  kable(
+    booktabs = TRUE,
+    linesep = ""
+  ) %>% kable_styling(latex_options = "scale_down")
+```
+
+```{r, echo=FALSE}
+#| label: fig-score_distribution
+#| fig-cap: Distribution of scores of top 10000 anime
+
+mean_score <- mean(clean_anime$mean)
+
+clean_anime %>%
+  ggplot(aes(x = mean)) +
+  geom_histogram(binwidth = 0.1, color="darkblue", fill="lightblue") +
+  theme_minimal() +
+  geom_vline(aes(xintercept=mean_score), linetype="dashed", size=1) +
+  annotate("text", x = mean_score + 0.1, y = 550, label = paste("Mean Score:", round(mean_score, 2)), 
+           hjust = 0, vjust = -1) +
+  labs(x = "Score", y = "count", title = "Distribution of scores of top 10000 anime")
+```
+
+```{r, echo=FALSE}
+#| label: fig-rank_vs_popularity
+#| fig-cap: Rank vs Popularity
+
+clean_anime |>  ggplot(aes(x = rank, y = popularity)) +
+  geom_point(color = "blue", size=0.5) +
+  labs(x = "Rank (Low to High)", y = "Popularity (Low to High)", title = "Rank vs Popularity") +
+  scale_x_reverse() +
+  scale_y_reverse() +
+  theme_minimal()
+```
 
 # Model
 

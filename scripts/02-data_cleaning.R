@@ -5,7 +5,7 @@
 # Date: 12 April 2024
 # Contact: allen.uy@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: 01-download_data is run and raw data is saved in 
+# Pre-requisites: 01a-download_data is run and raw data is saved in 
 # appropriate location
 
 #### Workspace setup ####
@@ -42,6 +42,10 @@ cleaned_data$num_list_users <- as.integer(cleaned_data$num_list_users)
 
 cleaned_data <- cleaned_data |> select(-genres) |>
   clean_names()
+
+# Select only the first 10000 rows based on rank
+cleaned_data <- cleaned_data %>%
+  slice(1:10000)
 
 #### Save data ####
 write_parquet(x = cleaned_data, "data/analysis_data/clean_anime.parquet")
