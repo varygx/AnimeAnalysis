@@ -119,7 +119,11 @@ clean_anime |>  ggplot(aes(x = rank, y = popularity)) +
   #          hjust = 1, vjust = 0, size = 4, color = "black", fontface = "bold")
 ```
 
+### Score Distribution (is there such thing as too many sections?)
+
 From the right skewed distribution of @fig-score_distribution, we observe that it is difficult for an anime to become top rated. This makes sense in the context of any subject that is reviewed as it requires a large group of people to consistently find greatness with no glaring flaws. It is also sensible that the mean score of the top 10000 anime is closer to 7 than to 5. Scores are inherently a subjective opinion and may take into account enjoyability, as well as how 'good' the piece of work is. Many people could enjoy a bad show even despite having many flaws. This matches the description MAL gives to each score number, where 1 is appalling, 5 is average, 7 is good, and 10 is a masterpiece. Seven is often seen as the borderline of acceptable in many contexts (objective source here maybe?).
+
+### Rank and Popularity
 
 If scoring is subjective how much of a relationship is there between rating and popularity? From @fig-rank_vs_popularity we see there is a moderately strong positive linear correlation between rank and popularity. This is also a sensible conclusion as a highly rated anime is more likely to attract new viewers.
 
@@ -150,6 +154,8 @@ ggplot(modern_anime, aes(x = start_date, y = popularity)) +
   geom_smooth(method = "lm", color = "red", se = FALSE)
 ```
 
+### Date and Popularity
+
 It may seem like the date an anime airs can be a factor for popularity as older anime could have longer exposure over time or newer anime has more coverage but this does not seem to be the case. @fig-date_vs_popularity shows people are less likely to watch very old anime and @fig-date_vs_popularity_modern suggests date is irrelevant to popularity.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -167,7 +173,9 @@ clean_anime |> ggplot(aes(x=num_scoring_users / num_list_users)) +
   geom_vline(aes(xintercept=mean_fraction), linetype="dashed", size=1)
 ```
 
-On average, 39% of users end up rating an anime on their list according to @fig-scoring_fraction. There is a strong positive correlation between scoring fraction and popularity, which is sensible as fans of an anime or any media in general are likely express their opinion on that particular media. Surprisingly there is a positive correlation between scoring fraction and rank. One might expect a normal distribution as people are more likely to voice their opinion on a particularly good or bad piece of work but not so much for average ones. Instead we see a linear relationship scoring fraction and rank.
+### Scoring Fraction
+
+On average, 39% of users end up rating an anime on their list according to @fig-scoring_fraction. There is a strong positive correlation between scoring fraction and popularity as seen in @fig-fraction_relationships-1, which is sensible as fans of an anime or any media in general are likely express their opinion on that particular media. Surprisingly in @fig-fraction_relationships-2 there is a positive correlation between scoring fraction and rank. One might expect a normal distribution as people are more likely to voice their opinion on a particularly good or bad piece of work but not so much for average ones. Instead we see a linear relationship scoring fraction and rank.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #| label: fig-fraction_relationships
@@ -189,6 +197,8 @@ clean_anime |> ggplot(aes(x = num_scoring_users / num_list_users, y = rank)) +
   theme_minimal() +
   scale_y_reverse()
 ```
+
+TODO look at studio and genre
 
 # Model
 
