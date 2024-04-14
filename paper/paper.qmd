@@ -1,14 +1,15 @@
 ---
-title: "Animazing"
-subtitle: "What was found"
+title: "Predicting which anime are animazing through quantitative analysis"
+subtitle: "People are more likely to rate great anime, regardless of age"
 author: Allen Uy
 thanks: "Code and data are available at: https://github.com/varygx/AnimeAnalysis"
 date: today
 date-format: long
-abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
+abstract: "This paper examines the top 10000 anime on MyAnimeList (MAL) by user score to understand the tendencies of highly rated anime. Using data provided by the MAL API, we discovered that the fraction of users that rate an anime to the total users that have engaged with the anime is a large indicator of user score. Our multiple linear regression model predicts the user score of an anime based on scoring fraction, date, and popularity and may indicate highly rated anime that have not yet gotten adequate exposure based on difference between the predicted and actual scores. This concept of scoring fraction is applicable to media forms beyond anime and may serve as the basis for recommendation algorithms."
 format: pdf
 number-sections: true
 bibliography: references.bib
+keywords: anime, regression, MyAnimeList
 ---
 
 ```{r}
@@ -27,11 +28,11 @@ clean_anime <- read_parquet(here::here("data/analysis_data/clean_anime.parquet")
 
 # Introduction (longer)
 
-Anime refers to animation originating from Japan. In 2021, half of Netflix's 222 million subscribers watched some anime on the platform and viewership saw an increase of 20% in the total hours over the previous year [@netflixAnime].
+Anime refers to animation originating from Japan. (I want to introduce what anime is better). In 2021, half of Netflix's 222 million subscribers watched some anime on the platform and viewership saw an increase of 20% in the total hours over the previous year [@netflixAnime]. Anime is not much different compared to other forms of media, however anime and animation in general is still often regarded by many as 'childish', despite plenty of anime covering serious topics[@enjoyAnimation].
 
-MyAnimeList, herein referred to as MAL, is one of the largest and most popular anime database and communities online. Users are able to keep track of anime they have watched or plan to, as well as rate and find similar anime.
+MyAnimeList, herein referred to as MAL, is one of the largest and most popular anime databases and communities online. Users are able to keep track of anime they have watched or plan to watch, as well as rate and find similar anime. MAL is similar to IMDb in terms of functionality.
 
-The estimand of interest is...
+The estimand of interest is the effect of
 
 We conduct an analysis on the ratings of anime on MAL. Specifically we contrast
 
@@ -63,7 +64,7 @@ This equation requires a minimum number of scores to ensure a fair sample size, 
 
 ## Top 10000 Ranked Anime
 
-The MAL API is capable of fetching up to 500 anime based on ranking at a time for a given offset. @tbl-anime_dataset shows a small subset of the data gathered. Relatively little cleaning was required as the API allows one to specify what fields should be returned. The genre was returned as a list of strings which was turned into a multi-hot encoding for data processing. MAL has 74 listed genres and themes, so only 2 genre columns are displayed here for readability.
+The MAL API is capable of fetching up to 500 anime based on ranking at a time for a given offset. @tbl-anime_dataset shows a small subset of the data gathered. Relatively little cleaning was required as the API allows one to specify what fields should be returned. The genre was returned as a list of strings which was turned into a multi-hot encoding for data processing. MAL has 74 listed genres and themes, so only 2 genre columns are displayed here for readability. The fraction column was calculated as the fraction of num_scoring_users to num_list_users, this is the fraction of users that gave a score to the anime. The days_since_start column was calculated as the integer day difference between the start date of the anime and the date the dataset was gathered.
 
 (maybe move this to discussion) Three fields of interest were unable to be retrieved without an API call for a specific id, namely related anime, recommendations, and statistics regarding the exact numbers of member status. When attempting to get this data, rate limiting was encountered at roughly 250 calls per 10 minutes, with no clear way to raise the API call limit. Due to this the relationships between anime could not investigated thoroughly.
 
@@ -348,7 +349,6 @@ In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. Th
 #| fig-cap: "Examining how the model fits, and is affected by, the data"
 #| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
 
-# analysis_data <- clean_anime
 
 pp_check(model) +
   theme_classic() +
@@ -362,6 +362,8 @@ posterior_vs_prior(model) +
 ```
 
 ## Diagnostics
+
+Maybe don't keep this
 
 @fig-stanareyouokay-1 is a trace plot. It shows... This suggests...
 
@@ -381,6 +383,14 @@ posterior_vs_prior(model) +
 # 
 # plot(first_model, "rhat")
 ```
+
+# Datasheet
+
+Link to datasheet in repo here
+
+# R package
+
+TODO: create package
 
 \newpage
 
