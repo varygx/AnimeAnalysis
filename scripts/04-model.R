@@ -22,8 +22,8 @@ model <-
     formula = mean ~ fraction + days_since_start + num_list_users,
     data = clean_anime,
     family = gaussian(),
-    prior = normal(location = 0, scale = 2.5, autoscale = TRUE),
-    prior_intercept = normal(location = 0, scale = 2.5, autoscale = TRUE),
+    prior = normal(location = c(1,0,0), scale = 2.5, autoscale = TRUE),
+    prior_intercept = normal(location = 7, scale = 2.5, autoscale = TRUE),
     prior_aux = exponential(rate = 1, autoscale = TRUE),
     seed = 42
   )

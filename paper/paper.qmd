@@ -231,18 +231,18 @@ From the preliminary analysis conducted in @sec-data, we build a multiple linear
 \begin{align} 
 y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
 \mu_i &= \beta_0 + \beta_1 \times \text{fraction} + \beta_2 \times \text{popularity} + \beta_3 \times \text{startDate}\\
-\beta_0 &\sim \mbox{Normal}(0, 1.6) \\
-\beta_1 &\sim \mbox{Normal}(0, 13) \\
+\beta_0 &\sim \mbox{Normal}(7, 1.6) \\
+\beta_1 &\sim \mbox{Normal}(1, 13) \\
 \beta_2 &\sim \mbox{Normal}(0, 3.6 \times 10^{-4}) \\
 \beta_3 &\sim \mbox{Normal}(0, 6.3 \times 10^{-6}) \\
 \sigma &\sim \mbox{Exponential}(1.6)
 \end{align}
 ```
-We run the model in R [@citeR] using the `rstanarm` package of @citeRstanarm. We use the default priors from `rstanarm` which are Normal distributions and apply autoscaling for better results.
+We run the model in R [@citeR] using the `rstanarm` package of @citeRstanarm. We use Normal priors for the coefficients centered around sensible values which are detailed in the following section. We apply autoscaling in `rstanarm` as we are unsure of the likely range of these coefficients.
 
 ### Model Justification
 
-We expect a positive relationship between the score of the anime and scoring fraction as seen in @sec-scoring-fraction. This is likely to be the most important factor in our model. We expect a very minor to no relationship between the score of the anime and the start date of an anime as seen in @sec-correlation-to-date. As such this coefficient is expected to be close to zero. Finally, we expect a minor positive relationship between the score of an anime and its popularity as seen in @sec-rank-and-popularity. This coefficient will likely be close to zero and smaller than start date, as an anime can have millions of members, but should be a better indicator than start date.
+We expect the intercept of the model to be close to the mean score of anime so we center the prior distribution around it. We expect a positive relationship between the score of the anime and scoring fraction as seen in @sec-scoring-fraction. This is likely to be the most important factor in our model and since the parameter is a fraction its coefficient should be relatively large, which is why we chose to center around 1. We expect a very minor to no relationship between the score of the anime and the start date of an anime as seen in @sec-correlation-to-date. As such this coefficient is expected to be close to zero. Finally, we expect a minor positive relationship between the score of an anime and its popularity as seen in @sec-rank-and-popularity. This coefficient will likely be close to zero and smaller than start date, as an anime can have millions of members, but should be a better indicator than start date.
 
 # Results {#sec-results}
 
