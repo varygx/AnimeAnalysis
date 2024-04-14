@@ -200,6 +200,24 @@ clean_anime |> ggplot(aes(x = num_scoring_users / num_list_users, y = rank)) +
 
 TODO look at studio and genre
 
+Keep member distribution?
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#| label: fig-member_distribution
+#| fig-cap: Distribution of Members of Top 10000 Anime
+
+mean_members <- mean(clean_anime$num_list_users)
+
+clean_anime %>%
+  ggplot(aes(x = num_list_users)) +
+  geom_histogram(binwidth=50000, color="darkblue", fill="lightblue") +
+  theme_minimal() +
+  geom_vline(aes(xintercept=mean_members), linetype="dashed", size=1) +
+  annotate("text", x = mean_members + 0.1, y = 550, label = paste("Mean Members", round(mean_members, 2)), 
+           hjust = 0, vjust = -1) +
+  labs(x = "Members", y = "count")
+```
+
 # Model
 
 The goal of our modelling strategy is twofold. Firstly,...
