@@ -9,7 +9,6 @@ abstract: "This paper examines the top 10000 anime on MyAnimeList (MAL) by user 
 format: pdf
 number-sections: true
 bibliography: references.bib
-keywords: anime, regression, MyAnimeList
 ---
 
 ```{r}
@@ -25,6 +24,8 @@ library("kableExtra")
 
 clean_anime <- read_parquet(here::here("data/analysis_data/clean_anime.parquet"))
 ```
+
+Can I add keywords under abstract somehow? keywords: anime, regression, MyAnimeList
 
 # Introduction (longer)
 
@@ -266,17 +267,10 @@ model <- readRDS(here::here("models/model.rds"))
 
 library("modelsummary")
 
-my_fmt <- list(
-  intercept = list(fmt = "%.2f"),
-  fraction = list(fmt = "%.2f"),
-  days_since_start = list(fmt = "%#.2e"),
-  num_list_users = list(fmt = "%#.2e")
-)
-
 table <- modelsummary(
   model,
   statistic = "mad",
-  fmt = my_fmt,
+  fmt = fmt_sprintf("%.3e"),
   output = "kableExtra"
 ) 
 
@@ -293,11 +287,9 @@ table |> kable_styling(latex_options = "scale_down")
 predictions <- clean_anime |>
   filter(!is.na(fraction) & !is.na(num_list_users) & !is.na(days_since_start)) |>
   mutate(predicted = predict(model, .)) |>
-  select(title, rank, popularity, mean, num_list_users, fraction, start_date, days_since_start, predicted)
+  select(title, rank, popularity, num_list_users, fraction, start_date, days_since_start, mean, predicted)
 
 bind_rows(head(predictions, 5), tail(predictions, 5)) |>
-  select(id, title, rank, start_date, studio, mean, popularity, num_list_users,
-         num_scoring_users, adventure, drama, fraction, days_since_start) |>
   kable(
     booktabs = TRUE,
     linesep = ""
