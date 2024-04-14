@@ -1,37 +1,44 @@
 #### Preamble ####
-# Purpose: Models... [...UPDATE THIS...]
-# Author: Rohan Alexander [...UPDATE THIS...]
-# Date: 11 February 2023 [...UPDATE THIS...]
-# Contact: rohan.alexander@utoronto.ca [...UPDATE THIS...]
+# Purpose: Models 
+# Author: Allen Uy
+# Date: 13 April 2024
+# Contact: allen.uy@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: [...UPDATE THIS...]
-# Any other information needed? [...UPDATE THIS...]
+# Pre-requisites: 02-data_cleaning is run and analysis data is placed in
+# appropriate location
 
 
 #### Workspace setup ####
-library(tidyverse)
-library(rstanarm)
+library("tidyverse")
+library("rstanarm")
+library("modelsummary")
 
 #### Read data ####
-analysis_data <- read_csv("data/analysis_data/analysis_data.csv")
+clean_anime <- read_parquet("data/analysis_data/clean_anime.parquet")
 
 ### Model data ####
-first_model <-
+model <-
   stan_glm(
-    formula = flying_time ~ length + width,
-    data = analysis_data,
+    formula = mean ~ fraction + days_since_start + num_list_users,
+    data = clean_anime,
     family = gaussian(),
     prior = normal(location = 0, scale = 2.5, autoscale = TRUE),
     prior_intercept = normal(location = 0, scale = 2.5, autoscale = TRUE),
     prior_aux = exponential(rate = 1, autoscale = TRUE),
-    seed = 853
+    seed = 42
   )
+
+summary(model)
+
+coef(model)
+
+prior_summary(model)
 
 
 #### Save model ####
 saveRDS(
-  first_model,
-  file = "models/first_model.rds"
+  model,
+  file = "models/model.rds"
 )
 
 
