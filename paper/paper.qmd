@@ -25,7 +25,7 @@ library("kableExtra")
 clean_anime <- read_parquet(here::here("data/analysis_data/clean_anime.parquet"))
 ```
 
-Can I add keywords under abstract somehow? keywords: anime, regression, MyAnimeList
+Keywords: anime, regression, MyAnimeList, scoring fraction, rank, popularity, rating
 
 # Introduction (longer)
 
@@ -65,22 +65,24 @@ This equation requires a minimum number of scores to ensure a fair sample size, 
 
 ## Top 10000 Ranked Anime
 
-The MAL API is capable of fetching up to 500 anime based on ranking at a time for a given offset. @tbl-anime_dataset shows a small subset of the data gathered. Relatively little cleaning was required as the API allows one to specify what fields should be returned. The genre was returned as a list of strings which was turned into a multi-hot encoding for data processing. MAL has 74 listed genres and themes, so only 2 genre columns are displayed here for readability. The fraction column was calculated as the fraction of num_scoring_users to num_list_users, this is the fraction of users that gave a score to the anime. The days_since_start column was calculated as the integer day difference between the start date of the anime and the date the dataset was gathered.
-
-(maybe move this to discussion) Three fields of interest were unable to be retrieved without an API call for a specific id, namely related anime, recommendations, and statistics regarding the exact numbers of member status. When attempting to get this data, rate limiting was encountered at roughly 250 calls per 10 minutes, with no clear way to raise the API call limit. Due to this the relationships between anime could not investigated thoroughly.
+The MAL API is capable of fetching up to 500 anime based on ranking at a time for a given offset. @tbl-anime_dataset shows a small subset of the data gathered along with the main variables of interest. Relatively little cleaning was required as the API allows one to specify what fields should be returned. The genre was returned as a JSON array which was turned into a multi-hot encoding for data processing. The fraction column was calculated as the fraction of num_scoring_users to num_list_users, this is the fraction of users that gave a score to the anime. The days_since_start column was calculated as the integer day difference between the start date of the anime and the date the dataset was gathered.
 
 ```{r, echo=FALSE}
 #| label: tbl-anime_dataset
 #| tbl-cap: Sample of Anime
 
 bind_rows(head(clean_anime, 3), tail(clean_anime, 3)) |>
-  select(id, title, rank, start_date, studio, mean, popularity, num_list_users,
-         num_scoring_users, adventure, drama, fraction, days_since_start) |>
+  select(id, title, rank, start_date, mean, popularity, num_list_users,
+         num_scoring_users, fraction, days_since_start) |>
   kable(
     booktabs = TRUE,
     linesep = ""
   ) |> kable_styling(latex_options = "scale_down")
 ```
+
+### Score Distribution {#sec-score-distribution}
+
+From the right skewed distribution of @fig-score_distribution, we observe that it is difficult for an anime to become top rated. This makes sense in the context of any subject that is reviewed as it requires a large group of people to consistently find greatness with no glaring flaws. It is also sensible that the mean score of the top 10000 anime is closer to 7 than to 5. Scores are inherently a subjective opinion and may take into account enjoyability, as well as how 'good' the piece of work is. Many people could enjoy a bad show even despite having many flaws. This matches the description MAL gives to each score number, where 1 is appalling, 5 is average, 7 is good, and 10 is a masterpiece. Seven is often seen as the average review score according to this forum discussion (see @averageScore).
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #| label: fig-score_distribution
@@ -98,6 +100,10 @@ clean_anime %>%
   labs(x = "Score", y = "count")
 ```
 
+### Rank and Popularity {#sec-rank-and-popularity}
+
+If scoring is subjective how much of a relationship is there between rating and popularity? From @fig-rank_vs_popularity we see there is a moderately strong positive linear correlation between rank and popularity. This is also a sensible conclusion as a highly rated anime is more likely to attract new viewers.
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #| label: fig-rank_vs_popularity
 #| fig-cap: Rank vs Popularity for Top 10000 Anime
@@ -110,24 +116,18 @@ clean_anime |>  ggplot(aes(x = rank, y = popularity)) +
   scale_x_reverse() +
   scale_y_reverse() +
   theme_minimal() +
-  geom_vline(xintercept = 5000, color = "black", size=1) +
-  geom_hline(yintercept = 10000, color = "black", size=1) +
-  annotate("text", x = 2500, y = 15000, label = "Hidden Gem", color = "black", size=5, fontface = "bold") +
-  annotate("text", x = 7500, y = 15000, label = "Niche", color = "black", size=5, fontface = "bold") +
-  annotate("text", x = 2500, y = 5000, label = "Top Tier", color = "black", size=5, fontface = "bold") +
-  annotate("text", x = 7500, y = 5000, label = "Classic", color = "black", size=5, fontface = "bold") +
+  # geom_vline(xintercept = 5000, color = "black", size=1) +
+  # geom_hline(yintercept = 10000, color = "black", size=1) +
+  # annotate("text", x = 2500, y = 15000, label = "Hidden Gem", color = "black", size=5, fontface = "bold") +
+  # annotate("text", x = 7500, y = 15000, label = "Niche", color = "black", size=5, fontface = "bold") +
+  # annotate("text", x = 2500, y = 5000, label = "Top Tier", color = "black", size=5, fontface = "bold") +
+  # annotate("text", x = 7500, y = 5000, label = "Classic", color = "black", size=5, fontface = "bold") +
   geom_smooth(method = "lm", color = "red", se = FALSE)
-  # annotate("text", x = 0, y = -500, label = paste("R:", round(correlation, 2)), 
-  #          hjust = 1, vjust = 0, size = 4, color = "black", fontface = "bold")
 ```
 
-### Score Distribution {#sec-score-distribution}
+### Correlation to Date {#sec-correlation-to-date}
 
-From the right skewed distribution of @fig-score_distribution, we observe that it is difficult for an anime to become top rated. This makes sense in the context of any subject that is reviewed as it requires a large group of people to consistently find greatness with no glaring flaws. It is also sensible that the mean score of the top 10000 anime is closer to 7 than to 5. Scores are inherently a subjective opinion and may take into account enjoyability, as well as how 'good' the piece of work is. Many people could enjoy a bad show even despite having many flaws. This matches the description MAL gives to each score number, where 1 is appalling, 5 is average, 7 is good, and 10 is a masterpiece. Seven is often seen as the borderline of acceptable in many contexts (objective source here maybe?).
-
-### Rank and Popularity {#sec-rank-and-popularity}
-
-If scoring is subjective how much of a relationship is there between rating and popularity? From @fig-rank_vs_popularity we see there is a moderately strong positive linear correlation between rank and popularity. This is also a sensible conclusion as a highly rated anime is more likely to attract new viewers.
+It may seem like the date an anime airs can be a factor for popularity as older anime could have longer exposure over time or newer anime has more coverage but this does not seem to be the case. @fig-date_relationships-1 shows people are less likely to watch very old anime and @fig-date_relationships_modern-1 suggests date is generally irrelevant to popularity but modern anime does have more viewership compared to older anime by the density of the points.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #| label: fig-date_relationships
@@ -149,6 +149,8 @@ ggplot(clean_anime, aes(x = start_date, y = rank)) +
   scale_y_reverse() +
   geom_smooth(method = "lm", color = "red", se = FALSE)
 ```
+
+We observe a weaker relationship between date and rating in @fig-date_relationships-2 which suggests viewers are still appreciative of older works. As the amount of anime produced has increased in modern times, @fig-date_relationships_modern-2 suggests that for every 'good' anime there is a 'bad' anime to match it.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #| label: fig-date_relationships_modern
@@ -174,11 +176,9 @@ ggplot(modern_anime, aes(x = start_date, y = rank)) +
   geom_smooth(method = "lm", color = "red", se = FALSE)
 ```
 
-### Correlation to Date {#sec-correlation-to-date}
+### Scoring Fraction {#sec-scoring-fraction}
 
-It may seem like the date an anime airs can be a factor for popularity as older anime could have longer exposure over time or newer anime has more coverage but this does not seem to be the case. @fig-date_relationships-1 shows people are less likely to watch very old anime and @fig-date_relationships_modern-1 suggests date is generally irrelevant to popularity but modern anime does have more viewership compared to older anime by the density of the points.
-
-We observe a weaker relationship between date and rating in @fig-date_relationships-2 which suggests viewers are still appreciative of older works. As the amount of anime produced has increased in modern times, @fig-date_relationships_modern-2 suggests that for every 'good' anime there is a 'bad' anime to match it.
+On average, 39% of users end up rating an anime on their list according to @fig-scoring_fraction. There is a strong positive correlation between scoring fraction and popularity as seen in @fig-fraction_relationships-1, which is sensible as fans of an anime or any media in general are likely express their opinion on that particular media. Surprisingly in @fig-fraction_relationships-2 there is a positive linear correlation between scoring fraction and rank. One might expect a normal distribution as people are more likely to voice their opinion on a particularly good or bad piece of work but not so much for average ones. Instead we see a linear relationship between scoring fraction and rank.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #| label: fig-scoring_fraction
@@ -189,14 +189,10 @@ mean_fraction <- mean(clean_anime$fraction)
 clean_anime |> ggplot(aes(x=fraction)) +
   geom_histogram(binwidth = 0.01, color="darkblue", fill="lightblue") +
   labs(x = "Fraction of Scoring Users to List Users", y = "Frequency") +
-  annotate("text", x = mean_fraction + 0.3, y = 370, label = paste("Mean Fraction:", round(mean_fraction, 3))) +
+  annotate("text", x = mean_fraction + 0.15, y = 370, label = paste("Mean Fraction:", round(mean_fraction, 3))) +
   theme_minimal() +
   geom_vline(aes(xintercept=mean_fraction), linetype="dashed", size=1)
 ```
-
-### Scoring Fraction {#sec-scoring-fraction}
-
-On average, 39% of users end up rating an anime on their list according to @fig-scoring_fraction. There is a strong positive correlation between scoring fraction and popularity as seen in @fig-fraction_relationships-1, which is sensible as fans of an anime or any media in general are likely express their opinion on that particular media. Surprisingly in @fig-fraction_relationships-2 there is a positive correlation between scoring fraction and rank. One might expect a normal distribution as people are more likely to voice their opinion on a particularly good or bad piece of work but not so much for average ones. Instead we see a linear relationship between scoring fraction and rank.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #| label: fig-fraction_relationships
@@ -228,7 +224,7 @@ Here we briefly describe the Bayesian analysis model used to investigate the use
 From the preliminary analysis conducted in @sec-data, we build a multiple linear regression model to predict the rating of an anime based on quantitative statistics. Define $y_i$ as the user score of the anime $i$. Then $\text{fraction}_i$ is the fraction of users who have rated the anime $i$ to members of the anime $i$, $\text{popularity}_i$ is the total members of anime $i$, and $\text{startDate}_i$ is the number of days from the start date of anime $i$ to the current date.
 
 ```{=tex}
-\begin{align} 
+\begin{align*} 
 y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
 \mu_i &= \beta_0 + \beta_1 \times \text{fraction} + \beta_2 \times \text{popularity} + \beta_3 \times \text{startDate}\\
 \beta_0 &\sim \mbox{Normal}(7, 1.6) \\
@@ -236,7 +232,7 @@ y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
 \beta_2 &\sim \mbox{Normal}(0, 3.6 \times 10^{-4}) \\
 \beta_3 &\sim \mbox{Normal}(0, 6.3 \times 10^{-6}) \\
 \sigma &\sim \mbox{Exponential}(1.6)
-\end{align}
+\end{align*}
 ```
 We run the model in R [@citeR] using the `rstanarm` package of @citeRstanarm. We use Normal priors for the coefficients centered around sensible values which are detailed in the following section. We apply autoscaling in `rstanarm` as we are unsure of the likely range of these coefficients.
 
@@ -246,7 +242,9 @@ We expect the intercept of the model to be close to the mean score of anime so w
 
 # Results {#sec-results}
 
-Our results are summarized in @tbl-modelresults. Our model observes a score intercept of 6.02, which means when an anime has been out for 0 days, has 0 members and thus 0 scoring fraction, it will likely have a user score of 6.34. This is slightly nonsensical as an anime had to have a positive scoring fraction and the minimum amount of scoring users to be ranked within the top 10000. When considering only the mean scoring fraction in @sec-scoring-fraction of 0.39, our model predicts a user score of $6.34 + 1.55\times0.39=6.94$, which is close to the mean user score of 6.91 seen in @sec-score-distribution. The start date coefficient is extremely small indicating the date of an anime has no impact on its score. For a 10 year old anime the model expects the score to decrease by $-1.605 \times 10^{-5} \times (10 \times 365)=-0.06$, which can be considered a neglible amount. Finally, for every 1 million members of an anime, its score increases by $7.77 \times 10^{-7}\times10^6=0.78$ .
+Our results are summarized in @tbl-modelresults. Our model observes a score intercept of 6.02, which means when an anime has been out for 0 days, has 0 members and thus 0 scoring fraction, it will likely have a user score of 6.34. This is slightly nonsensical as an anime had to have a positive scoring fraction and the minimum amount of scoring users to be ranked within the top 10000. When considering only the mean scoring fraction in @sec-scoring-fraction of 0.39, our model predicts a user score of $6.34 + 1.546\times0.39=6.94$, which is close to the mean user score of 6.91 seen in @sec-score-distribution. The start date coefficient is extremely small indicating the date of an anime has no impact on its score. For a 10 year old anime the model expects the score to decrease by $-1.605 \times 10^{-5} \times (10 \times 365)=-0.06$, which can be considered a negligible amount. Finally, for every 1 million members of an anime, its score increases by $7.776 \times 10^{-7}\times10^6=0.78$.
+
+Our model has an R2 of 0.276 meaning 27.6% of variance in user score is explained by effectively only scoring fraction and popularity, as only the oldest anime are affected by the start date coefficient. This is relatively impressive, considering the subjective nature of reviews, that user score can possibly be predicted purely by numbers.
 
 ```{r}
 #| echo: false
@@ -274,8 +272,14 @@ table <- modelsummary(
   output = "kableExtra"
 ) 
 
-table |> kable_styling(latex_options = "scale_down")
+# table |> kable_styling(latex_options = "scale_down")
+table
 ```
+
+@tbl-modelpredictions shows the predictions of our model compared to the actual scores of the top 5 and bottom 5 anime in the dataset. Some observations that should be noted are:
+
+1.  The score intercept is higher than the score of lower ranked anime
+2.  The model is harsh on highly ranked anime that are not yet popular
 
 ```{r}
 #| echo: false
@@ -296,24 +300,35 @@ bind_rows(head(predictions, 5), tail(predictions, 5)) |>
   ) |> kable_styling(latex_options = "scale_down")
 ```
 
-@tbl-modelpredictions shows the predictions of our model compared to the actual scores of the top 5 and bottom 5 anime in the dataset. Some observations that should be noted are:
-
-1.  The score intercept is higher than the score of lower ranked anime
-2.  The model is harsh on highly ranked anime that are not yet popular
-
 # Discussion {#sec-discussion}
 
-## First discussion point {#sec-first-point}
+## Key Findings {#sec-first-point}
 
-If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this.
+From the visualizations in @sec-data we discover 3 key findings:
 
-## Second discussion point
+1.  There exists a positive relationship between rank and popularity.
+2.  Except for the oldest anime, anime is popular regardless of age.
+3.  The fraction of people that score an anime to the total members of an anime is a strong indicatowwwwwwwwwr of rating.
 
-## Third discussion point
+Through a multiple linear regression model built in @sec-model, we find that the base anime is given a score of 6.34. Every percentage point in the scoring fraction improves the score by 0.01546. For every day an anime has been released its score decreases by $-1.605\times10^{-5}$, which is only relevant for the oldest anime on the database. For every 1 million members of an anime its score increases by 0.7776.
 
-## Weaknesses and next steps
+The correlation found in @sec-scoring-fraction is surprising as it is contrary to human psychology. People are more likely to remember negative experiences so one might expect an increase in scoring fraction for low quality anime @negativeExperience. However we find the opposite on MAL, suggesting people are less likely to rate low quality anime, perhaps as a way to forget about the show.
 
-Weaknesses and next steps should also be included.
+## Applications
+
+When comparing the predicted scores of the model and the actual user scores on MAL we notice that the model performs poorly for highly rated but not yet popular anime in terms of total member count. This matches the rank-popularity relation discussed in @sec-rank-and-popularity. This observation leads to the potential usage of the model as an indicator of which anime are not popular enough relative to their ranking.
+
+For instance, if we look at Sousou no Frieren in @tbl-modelresults we see it is by far the highest rated anime on MAL. One could assume that the main reason the anime is not yet popular in terms of total member count is due to airing only recently. The difference between the predicted score and the actual score can indicate an anime should get more viewership relative to its quality. This scoring could be used in a recommendation system to highlight anime that may be deserving of viewership.
+
+## Weaknesses and Next steps
+
+There is some noise regarding the relationship between rating and popularity. How much of popularity is due to rating and how much of rating is due to popularity are areas of interest. We assume that each user on MAL is a unique individual due to the personal nature of lists. It would not generally serve much purpose for a person to keep track of separate lists. However in the past there have been issues of people attempting to artificially lower or raise the scores of some anime @MALBrigading. Since then MAL has attempted to police this issue and we do not believe it should be a concern in this dataset.
+
+Three fields of interest were unable to be retrieved without an API call for a specific id, namely related anime, recommendations, and statistics regarding the exact numbers of member status. When attempting to get this data, rate limiting was encountered at roughly 250 calls per 10 minutes, with no clear way to raise the API call limit. Due to this the relationships between anime could not investigated thoroughly. Analysis of a graph structure could prove interesting, especially in the context of recommendations and series of anime.
+
+A variable that would likely be helpful in our model is drop rate, which can be calculated as the fraction of users that label an anime as dropped compared to the total members of that anime. As mentioned previously this variable is capable of being retrieved from the API but would take a long time to gather. We believe that higher ranked anime are likely to correspond to lower drop rate.
+
+An analysis on scoring fraction should be done on IMDb if applicable to verify whether the assumptions made in this paper apply to other forms of media beyond anime.
 
 \newpage
 
@@ -327,9 +342,9 @@ Weaknesses and next steps should also be included.
 
 ## Posterior predictive check
 
-In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
+In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This compares the actual scores of anime with simulations from the posterior distribution. The solid black line is the score distribution seen in @sec-score-distribution and we see that the model fits the data relatively well for only being capable of making a normally distributed posterior.
 
-In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows...
+In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This show how much the estimates change once data are taken into account. We see that the posterior coefficients are close the prior, indicating a good choice of priors.
 
 ```{r}
 #| eval: true
@@ -355,11 +370,7 @@ posterior_vs_prior(model) +
 
 ## Diagnostics
 
-Maybe don't keep this
-
-@fig-stanareyouokay-1 is a trace plot. It shows... This suggests...
-
-@fig-stanareyouokay-2 is a Rhat plot. It shows... This suggests...
+@fig-stanareyouokay-1 and @fig-stanareyouokay-2 are trace and Rhat plots of our model. We see horizontal lines that bounce around and have overlap between the chains in the trace plot and values close to 1 in the Rhat plot. This suggests our model ran into no problems.
 
 ```{r}
 #| echo: false
@@ -371,9 +382,9 @@ Maybe don't keep this
 #| fig-subcap: ["Trace plot", "Rhat plot"]
 #| layout-ncol: 2
 
-# plot(first_model, "trace")
-# 
-# plot(first_model, "rhat")
+plot(model, "trace")
+
+plot(model, "rhat")
 ```
 
 # Datasheet
