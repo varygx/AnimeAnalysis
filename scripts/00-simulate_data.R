@@ -13,7 +13,7 @@ set.seed(42)
 
 
 #### Simulate data ####
-num_obs <- 100
+num_obs <- 1000
 start_date <- as.Date("2000-01-01")
 end_date <- as.Date("2024-04-10")
 num_days <- end_date - start_date
@@ -29,7 +29,8 @@ data <- tibble(
   rank = rank(-score),
   genre = random_genres,
   members = round(runif(num_obs, 100, 1000000)),
-  popularity = rank(-members)
+  popularity = rank(-members),
+  fraction = pmin(pmax(rnorm(num_obs, mean=0.39, sd=0.1), 0), 1)
 )
 
 score_distribution_plot <- ggplot(data, aes(x = score)) +
@@ -51,5 +52,12 @@ rank_popularity_plot <- ggplot(data, aes(x = rank, y = popularity)) +
   theme_minimal()
 
 rank_popularity_plot
+
+fraction_distribution_plot <- data |> ggplot(aes(x=fraction)) +
+  geom_histogram(binwidth = 0.01, color="darkblue", fill="lightblue") +
+  labs(x = "Fraction of Scoring Users to List Users", y = "Frequency") +
+  theme_minimal()
+
+fraction_distribution_plot
 
 
