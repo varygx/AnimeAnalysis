@@ -5,7 +5,7 @@
 # Date: 12 April 2024
 # Contact: allen.uy@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: 01a-download_data is run and raw data is saved in 
+# Pre-requisites: 01a-download_data is run and raw data is saved in
 # appropriate location
 # Update ref_date as needed
 
@@ -14,7 +14,7 @@ library("tidyverse")
 library("arrow")
 library("janitor")
 
-ref_date = as.Date("2024-04-12")
+ref_date <- as.Date("2024-04-12")
 
 
 #### Clean data ####
@@ -42,13 +42,14 @@ cleaned_data$start_date <- as.Date(cleaned_data$start_date)
 cleaned_data$num_scoring_users <- as.integer(cleaned_data$num_scoring_users)
 cleaned_data$num_list_users <- as.integer(cleaned_data$num_list_users)
 
-cleaned_data<- cleaned_data |>
+cleaned_data <- cleaned_data |>
   mutate(days_since_start = as.integer(ref_date - start_date))
 
 cleaned_data <- cleaned_data |>
   mutate(fraction = num_scoring_users / num_list_users)
 
-cleaned_data <- cleaned_data |> select(-genres) |>
+cleaned_data <- cleaned_data |>
+  select(-genres) |>
   clean_names()
 
 # Select only the first 10000 rows based on rank

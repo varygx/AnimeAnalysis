@@ -27,7 +27,7 @@ clean_anime <- read_parquet(here::here("data/analysis_data/clean_anime.parquet")
 
 Keywords: anime, regression, MyAnimeList, scoring fraction, rank, popularity, rating
 
-# Introduction (longer)
+# Introduction
 
 Anime refers to animation originating from Japan. (I want to introduce what anime is better). In 2021, half of Netflix's 222 million subscribers watched some anime on the platform and viewership saw an increase of 20% in the total hours over the previous year [@netflixAnime]. Anime is not much different compared to other forms of media, however anime and animation in general is still often regarded by many as 'childish', despite plenty of anime covering serious topics[@enjoyAnimation].
 
@@ -308,7 +308,7 @@ From the visualizations in @sec-data we discover 3 key findings:
 
 1.  There exists a positive relationship between rank and popularity.
 2.  Except for the oldest anime, anime is popular regardless of age.
-3.  The fraction of people that score an anime to the total members of an anime is a strong indicatowwwwwwwwwr of rating.
+3.  The fraction of people that score an anime to the total members of an anime is a strong indicator of rating.
 
 Through a multiple linear regression model built in @sec-model, we find that the base anime is given a score of 6.34. Every percentage point in the scoring fraction improves the score by 0.01546. For every day an anime has been released its score decreases by $-1.605\times10^{-5}$, which is only relevant for the oldest anime on the database. For every 1 million members of an anime its score increases by 0.7776.
 
@@ -389,7 +389,7 @@ plot(model, "rhat")
 
 # Datasheet
 
-Link to datasheet in repo here
+The datasheet can be found in the repo at [other/datasheet/datasheet.pdf](../other/datasheet/datasheet.pdf)
 
 # R package
 

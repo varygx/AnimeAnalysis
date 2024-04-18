@@ -12,7 +12,6 @@
 library("tidyverse")
 library("testthat")
 library("arrow")
-library("here")
 
 clean_anime <- read_parquet(here::here("data/analysis_data/clean_anime.parquet"))
 

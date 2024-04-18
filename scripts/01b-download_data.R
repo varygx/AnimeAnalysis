@@ -1,11 +1,12 @@
 #### Preamble ####
 # Purpose: Downloads and saves the data using the MyAnimeList API
 # Author: Allen Uy
-# Date: 12 April 2024
+# Date: 17 April 2024
 # Contact: allen.uy@mail.utoronto.ca
 # License: MIT
 # Pre-requisites: .env is placed in working directory with bearer token
 # refer to README for more details. 01a-download_data is run.
+# Note: This file is not necessary to run. We did not end up exploring this in the paper
 
 
 #### Workspace setup ####

@@ -13,6 +13,7 @@ library("tidyverse")
 library("rstanarm")
 library("modelsummary")
 
+
 #### Read data ####
 clean_anime <- read_parquet("data/analysis_data/clean_anime.parquet")
 
