@@ -2,8 +2,8 @@
 title: "Datasheet for 'Top 10000 Ranked Anime on MyAnimeList'"
 author: Allen Uy
 thanks: "Code and data are available at: https://github.com/varygx/AnimeAnalysis"
-date: "`r Sys.time()`"
-date-format: "D MMMM YYYY"
+date: today
+date-format: long
 format: pdf
 number-sections: true
 bibliography: references.bib

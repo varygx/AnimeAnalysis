@@ -352,8 +352,6 @@ An analysis on scoring fraction should be done on IMDb to verify whether the ass
 
 # Appendix {.unnumbered}
 
-# Additional data details
-
 # Model details {#sec-model-details}
 
 ## Posterior predictive check
@@ -405,7 +403,7 @@ plot(model, "rhat")
 
 # Datasheet
 
-The datasheet can be found in the repo at [other/datasheet/datasheet.pdf](../other/datasheet/datasheet.pdf)
+The datasheet can be found in the repo at [other/datasheet/datasheet.pdf](https://github.com/varygx/AnimeAnalysis/blob/main/other/datasheet/datasheet.pdf)
 
 \newpage
 
